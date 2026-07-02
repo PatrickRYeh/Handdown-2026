@@ -1,0 +1,2 @@
+# SQL migrations live here — the source of truth for the database schema and
+# RLS policies (PRD §4). Added in Phase 1.
