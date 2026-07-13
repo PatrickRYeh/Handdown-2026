@@ -39,7 +39,7 @@ const DEMO_USERS = [
 ];
 
 // Listings keyed by owner email. price is in dollars; converted to cents below.
-const DEMO_LISTINGS = {
+const CURATED_LISTINGS = {
   'jamie.demo@berkeley.edu': [
     { title: 'IKEA desk — great condition', description: 'White MICKE desk, barely used. Perfect for a dorm. Pickup near Southside.', price: 45, condition: 'like_new', category: 'furniture', region_id: 'Southside' },
     { title: 'Mini fridge', description: 'Compact 1.7 cu ft fridge, works perfectly. Moving out, must sell.', price: 60, condition: 'good', category: 'electronics', region_id: 'Southside' },
@@ -49,6 +49,57 @@ const DEMO_LISTINGS = {
     { title: 'Desk chair — ergonomic', description: 'Adjustable height, comfy for long study sessions. Northside pickup.', price: 35, condition: 'good', category: 'furniture', region_id: 'Northside' },
     { title: 'Noise-cancelling headphones', description: 'Sony WH-1000XM4, includes case and cable. Amazing for the library.', price: 120, condition: 'like_new', category: 'electronics', region_id: 'Northside' },
     { title: 'Winter jacket (M)', description: 'North Face, warm and barely worn. Berkeley winters covered.', price: 50, condition: 'like_new', category: 'apparel', region_id: 'Northside' },
+  ],
+};
+
+// Generated filler so the feed has enough rows (>40) to exercise infinite
+// scroll (page size is 20). Deterministic, so re-runs produce the same set.
+const FILLER_ITEMS = [
+  ['Bookshelf, 5-tier', 'furniture', 25], ['Futon with frame', 'furniture', 80],
+  ['Bedside lamp', 'furniture', 10], ['Full-length mirror', 'furniture', 15],
+  ['Storage ottoman', 'furniture', 20], ['Folding table', 'furniture', 18],
+  ['TI-84 calculator', 'electronics', 55], ['27" monitor', 'electronics', 90],
+  ['Mechanical keyboard', 'electronics', 40], ['Desk fan', 'electronics', 12],
+  ['Electric kettle', 'electronics', 15], ['Bluetooth speaker', 'electronics', 25],
+  ['Cal hoodie (L)', 'apparel', 20], ['Rain boots (W8)', 'apparel', 15],
+  ['Denim jacket (M)', 'apparel', 22], ['Running shoes (M10)', 'apparel', 30],
+  ['Backpack — North Face', 'apparel', 35], ['Beanie, never worn', 'apparel', 8],
+  ['CS 61A course reader', 'books', 12], ['Physics 7A textbook', 'books', 40],
+  ['Econ 1 textbook bundle', 'books', 35], ['Stats 20 notes + book', 'books', 18],
+  ['Spanish 1 workbook', 'books', 10], ['GRE prep set', 'books', 25],
+  ['Yoga mat', 'other', 10], ['Skateboard', 'other', 45],
+  ['Tennis racket', 'other', 30], ['Rice cooker', 'other', 20],
+  ['String lights', 'other', 8], ['Plant + ceramic pot', 'other', 12],
+  ['Area rug 5x7', 'furniture', 40], ['Clip-on desk light', 'electronics', 9],
+  ['Formal blazer (S)', 'apparel', 28], ['Bio 1A lab manual', 'books', 15],
+  ['Mini vacuum', 'other', 22], ['Shoe rack', 'furniture', 12],
+  ['HDMI + USB-C cables', 'electronics', 10], ['Sun hat', 'apparel', 7],
+  ['Poetry anthology', 'books', 9], ['Board game bundle', 'other', 25],
+];
+const CONDITIONS = ['new', 'like_new', 'good', 'fair', 'used'];
+const REGIONS = ['Southside', 'Northside', 'Downtown', 'Westbrae'];
+
+function fillerListings(startIndex) {
+  return FILLER_ITEMS.filter((_, i) => i % 2 === startIndex).map(
+    ([title, category, price], i) => ({
+      title,
+      description: `${title} in solid shape — pickup on campus, message me for details.`,
+      price,
+      condition: CONDITIONS[i % CONDITIONS.length],
+      category,
+      region_id: REGIONS[i % REGIONS.length],
+    }),
+  );
+}
+
+const DEMO_LISTINGS = {
+  'jamie.demo@berkeley.edu': [
+    ...CURATED_LISTINGS['jamie.demo@berkeley.edu'],
+    ...fillerListings(0),
+  ],
+  'sam.demo@berkeley.edu': [
+    ...CURATED_LISTINGS['sam.demo@berkeley.edu'],
+    ...fillerListings(1),
   ],
 };
 
