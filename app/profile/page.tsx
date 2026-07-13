@@ -2,11 +2,14 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { signOut } from '@/app/login/actions';
+import { Avatar } from '@/components/avatar';
+import { BackButton } from '@/components/back-button';
+import { RatingStars } from '@/components/rating-stars';
 import { formatClassYearMajor } from '@/lib/format';
 import type { Profile } from '@/lib/types';
 
-// Current user's profile. Phase 2 version: view + sign out. Editing, ratings,
-// and the Selling section arrive in Phase 4.
+// Own profile (PRD §6.7): profile card, Location + Ratings rows, Selling
+// section → Your Listings, edit, sign out.
 export default async function ProfilePage() {
   const supabase = await createClient();
   const {
@@ -20,35 +23,47 @@ export default async function ProfilePage() {
     .eq('uid', user.id)
     .single();
   const profile = data as Profile | null;
+  const name = profile?.full_name || user.email || '';
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 py-4">
       <header className="flex items-center gap-3 py-2">
+        <BackButton />
+        <h1 className="flex-1 text-lg font-semibold">Profile</h1>
         <Link
-          href="/campus"
-          aria-label="Back to feed"
-          className="rounded-full p-2 hover:bg-gray-100"
+          href="/profile/edit"
+          className="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium hover:bg-gray-50"
         >
-          ←
+          Edit
         </Link>
-        <h1 className="text-lg font-semibold">Profile</h1>
       </header>
 
       <div className="mt-4 flex items-center gap-4 rounded-2xl border border-gray-200 p-5">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-xl font-bold text-white">
-          {(profile?.full_name || user.email || '?').charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <p className="font-semibold">{profile?.full_name || user.email}</p>
-          <p className="text-sm text-muted">
+        <Avatar name={name} url={profile?.avatar_url ?? null} size={56} />
+        <div className="min-w-0">
+          <p className="truncate font-semibold">{name}</p>
+          <p className="truncate text-sm text-muted">
             {formatClassYearMajor(
               profile?.class_year ?? null,
               profile?.major ?? null,
-            ) || 'Add your class year and major (Phase 4)'}
+            ) || 'Add your class year and major'}
           </p>
-          {profile?.campus_region && (
-            <p className="text-sm text-muted">{profile.campus_region}</p>
-          )}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-col divide-y divide-gray-100 rounded-2xl border border-gray-200 px-5">
+        <div className="flex items-center justify-between py-4">
+          <span className="text-sm font-medium">Location</span>
+          <span className="text-sm text-muted">
+            {profile?.campus_region ?? 'Not set'}
+          </span>
+        </div>
+        <div className="flex items-center justify-between py-4">
+          <span className="text-sm font-medium">Ratings</span>
+          <RatingStars
+            rating={profile?.rating ?? 0}
+            count={profile?.rating_count ?? 0}
+          />
         </div>
       </div>
 

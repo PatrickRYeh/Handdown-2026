@@ -6,10 +6,10 @@ import { createClient } from '@/lib/supabase/client';
 const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.85;
 
-async function compress(file: File): Promise<Blob> {
+async function compress(file: File, maxDim = MAX_DIMENSION): Promise<Blob> {
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
     const width = Math.round(bitmap.width * scale);
     const height = Math.round(bitmap.height * scale);
 
@@ -48,4 +48,23 @@ export async function uploadListingImage(
   if (error) throw new Error(`Photo upload failed: ${error.message}`);
 
   return supabase.storage.from('listing-images').getPublicUrl(path).data.publicUrl;
+}
+
+/**
+ * Compress and upload the user's avatar (PRD §4.3: avatars/{uid}.jpg). Upserts
+ * over the previous photo; the ?v= suffix busts stale browser/CDN caches so
+ * the new photo shows immediately.
+ */
+export async function uploadAvatar(uid: string, file: File): Promise<string> {
+  const supabase = createClient();
+  const blob = await compress(file, 512);
+  const path = `${uid}.jpg`;
+
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+  if (error) throw new Error(`Avatar upload failed: ${error.message}`);
+
+  const { publicUrl } = supabase.storage.from('avatars').getPublicUrl(path).data;
+  return `${publicUrl}?v=${Date.now()}`;
 }

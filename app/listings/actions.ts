@@ -121,6 +121,37 @@ export async function updateListing(
   return { id };
 }
 
+export async function toggleSave(
+  listingId: string,
+  save: boolean,
+): Promise<{ error?: string }> {
+  if (!z.string().uuid().safeParse(listingId).success) return { error: 'Invalid id.' };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'You must be signed in.' };
+
+  if (save) {
+    const { error } = await supabase
+      .from('saved_listings')
+      .upsert(
+        { uid: user.id, listing_id: listingId },
+        { onConflict: 'uid,listing_id', ignoreDuplicates: true },
+      );
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase
+      .from('saved_listings')
+      .delete()
+      .eq('uid', user.id)
+      .eq('listing_id', listingId);
+    if (error) return { error: error.message };
+  }
+  return {};
+}
+
 export async function deleteListing(id: string): Promise<MutationResult> {
   if (!z.string().uuid().safeParse(id).success) return { error: 'Invalid id.' };
 
